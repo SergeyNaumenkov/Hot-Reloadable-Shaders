@@ -12,11 +12,11 @@ When you work with Microsoft DirectX 11 hlsl shaders, you have to constantly res
 I have to work quite often with .hlsl shaders and sometimes it starts to get "annoying" to constantly reboot the application in order to apply changes to .in the hlsl shader, 
 I came up with the idea to automate this and add hot reload for .hlsl to speed up your development, and I'll say this - it really speeds up shader development a lot. 
 
-## Problems
+## Problems withour Hot Reloadble Shaders
 * ❌ Constant application restarts
 * ❌ Wasting time on recompilation
 * ❌ Interrupting the workflow
-## Decision
+## Decision with Hot Reloadable Shaders
 * ✅ Automatic recompilation of shaders
 * ✅ Instant update in runtime
 * ✅ Continuous workflow
@@ -45,7 +45,13 @@ just clone the repository, run .sln and assemble the project, launch the applica
 open .hlsl it in a text editor, edit file and after saving, you will immediately see the result on the screen. Without recompilation.
 
 ## Showcase
+### Demonstration of hot reload
+<img src="showcase/hotReload.gif" width="100%" height="80%" alt="Hot Reload demo">
 
+---
+
+### Demonstration of error output to the console
+<img src="showcase/consoleLog.gif" width="100%" height="80%" alt="Console errors">
 
 ## License
 **Hot Reloadable Shaders** is licensed under the MIT License, see <a href="LICENSE.txt">LICENSE.txt</a> for more information.
