@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="demo/3DCube/3DCube.vcxproj" Id="497bcb4a-fbd6-4885-af08-83e96a92ef5a" />
+</Solution>

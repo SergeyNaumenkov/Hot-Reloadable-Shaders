@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Example.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="HotReloadableShaders.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Example.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{a4bbad56-4195-404a-82eb-f411224f4b8a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{314b40ba-d449-46cc-9acd-c44b598c080b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
