@@ -98,11 +98,9 @@ public:
 	// Get compiled shaders type
 	std::vector<CompiledQueue> GetCompiledShadersType();
 
-	// Get compiled pixel shader 
-	ID3D11PixelShader* GetCompiledPixelShader();
-
-	// Get compiled pixel shader 
-	ID3D11VertexShader* GetCompiledVertexShader();
+	// Get compiled shader by local name
+	template<typename T>
+	T GetCompiledShaderByLocalName(const char* localName);
 
 	// Set custom callback, which called when shaders is compiled
 	void ActionIfCompiled(std::function<void()> callback);
@@ -130,8 +128,7 @@ private:
 	std::map<const char*, unsigned long long> mTimeChanged;
 
 	bool bIsCompiled;
-	ID3D11PixelShader* mCompiledPixelShader;
-	ID3D11VertexShader* mCompiledVertexShader;
+	std::map<const char*, IUnknown*> mCompiledShadersA;
 
 	std::function<void()> mCustomCallbackWhenShadersIsCompiled;
 };
@@ -142,9 +139,6 @@ private:
 inline HotReloadableShaders::HotReloadableShaders()
 {
 	bIsCompiled = false;
-
-	mCompiledPixelShader = nullptr;
-	mCompiledVertexShader = nullptr;
 }
 
 /// <summary>
@@ -152,16 +146,17 @@ inline HotReloadableShaders::HotReloadableShaders()
 /// </summary>
 inline HotReloadableShaders::~HotReloadableShaders()
 {
-	if (mCompiledPixelShader)
-	{
-		mCompiledPixelShader->Release();
-		mCompiledPixelShader = nullptr;
-	}
+	mShadersInformation.clear();
+	mCompiledShaders.clear();
+	mTimeChanged.clear();
 
-	if (mCompiledVertexShader)
+	for (auto& r : mCompiledShadersA)
 	{
-		mCompiledVertexShader->Release();
-		mCompiledVertexShader = nullptr;
+		if (r.second)
+		{
+			r.second->Release();
+			r.second = nullptr;
+		}
 	}
 }
 
@@ -173,6 +168,7 @@ inline void HotReloadableShaders::AddNewBundle(ShaderInformation& information)
 {
 	mShadersInformation.push_back(information);
 	mTimeChanged[information.localName] = 0;
+	mCompiledShadersA[information.localName] = nullptr;
 }
 
 /// <summary>
@@ -223,18 +219,11 @@ inline std::vector<CompiledQueue> HotReloadableShaders::GetCompiledShadersType()
 /// Get compiled pixel shader 
 /// </summary>
 /// <returns></returns>
-inline ID3D11PixelShader* HotReloadableShaders::GetCompiledPixelShader()
+template<typename T>
+inline T HotReloadableShaders::GetCompiledShaderByLocalName(const char* localName)
 {
-	return mCompiledPixelShader;
-}
-
-/// <summary>
-/// Get compiled pixel shader 
-/// </summary>
-/// <returns></returns>
-inline ID3D11VertexShader* HotReloadableShaders::GetCompiledVertexShader()
-{
-	return mCompiledVertexShader;
+	auto res = reinterpret_cast<T>(mCompiledShadersA[localName]);
+	return res;
 }
 
 /// <summary>
@@ -450,14 +439,19 @@ inline bool HotReloadableShaders::CompileFile(ShaderInformation& info)
 /// <returns></returns>
 inline bool HotReloadableShaders::CreatePixelShader(ShaderInformation& info, ID3DBlob* shader)
 {
-	if (mCompiledPixelShader)
+	auto sh = mCompiledShadersA.find(info.localName);
+	if (sh != mCompiledShadersA.end())
 	{
-		mCompiledPixelShader->Release();
-		mCompiledPixelShader = nullptr;
+		if (sh->second)
+		{
+			mCompiledShadersA[info.localName]->Release();
+			mCompiledShadersA[info.localName] = nullptr;
+		}
 	}
 
 	// Create
-	auto res = info.renderDevices.mRenderDevice->CreatePixelShader(shader->GetBufferPointer(), shader->GetBufferSize(), nullptr, &mCompiledPixelShader);
+	ID3D11PixelShader* pixelShader = nullptr;
+	auto res = info.renderDevices.mRenderDevice->CreatePixelShader(shader->GetBufferPointer(), shader->GetBufferSize(), nullptr, &pixelShader);
 	if (FAILED(res))
 	{
 		shader->Release();
@@ -466,6 +460,10 @@ inline bool HotReloadableShaders::CreatePixelShader(ShaderInformation& info, ID3
 
 	mCompiledShaders.push_back({ HotReloadableShaderType::PixelShader });
 	bIsCompiled = true;
+
+	// save
+	mCompiledShadersA[info.localName] = pixelShader;
+
 	return true;
 }
 
@@ -477,14 +475,19 @@ inline bool HotReloadableShaders::CreatePixelShader(ShaderInformation& info, ID3
 /// <returns></returns>
 inline bool HotReloadableShaders::CreateVertexShader(ShaderInformation& info, ID3DBlob* shader)
 {
-	if (mCompiledVertexShader)
+	auto sh = mCompiledShadersA.find(info.localName);
+	if (sh != mCompiledShadersA.end())
 	{
-		mCompiledVertexShader->Release();
-		mCompiledVertexShader = nullptr;
+		if (sh->second)
+		{
+			mCompiledShadersA[info.localName]->Release();
+			mCompiledShadersA[info.localName] = nullptr;
+		}
 	}
 
 	// Create
-	auto res = info.renderDevices.mRenderDevice->CreateVertexShader(shader->GetBufferPointer(), shader->GetBufferSize(), nullptr, &mCompiledVertexShader);
+	ID3D11VertexShader* vertexShader = nullptr;
+	auto res = info.renderDevices.mRenderDevice->CreateVertexShader(shader->GetBufferPointer(), shader->GetBufferSize(), nullptr, &vertexShader);
 	if (FAILED(res))
 	{
 		shader->Release();
@@ -493,6 +496,9 @@ inline bool HotReloadableShaders::CreateVertexShader(ShaderInformation& info, ID
 
 	mCompiledShaders.push_back({ HotReloadableShaderType::VertexShader });
 	bIsCompiled = true;
+
+	// Save
+	mCompiledShadersA[info.localName] = vertexShader;
 	return true;
 }
 

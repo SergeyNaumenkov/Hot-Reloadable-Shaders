@@ -447,11 +447,15 @@ void Example::PrepareHotReloadShaders()
 			// Bind shaders by shader type
 			if (type.compiledShaderType == HotReloadableShaderType::VertexShader)
 			{
-				mRenderDeviceContext->VSSetShader(mHotReloadShaders.GetCompiledVertexShader(), NULL, 0);
+				// For example
+				auto shader = mHotReloadShaders.GetCompiledShaderByLocalName<ID3D11VertexShader*>("BasicVertexShader");
+				mRenderDeviceContext->VSSetShader(shader, NULL, 0);
 			}
 			else if (type.compiledShaderType == HotReloadableShaderType::PixelShader)
 			{
-				mRenderDeviceContext->PSSetShader(mHotReloadShaders.GetCompiledPixelShader(), NULL, 0);
+				// For example
+				auto shader = mHotReloadShaders.GetCompiledShaderByLocalName<ID3D11PixelShader*>("BasicPixelShader");
+				mRenderDeviceContext->PSSetShader(shader, NULL, 0);
 			}
 		}
 		});
