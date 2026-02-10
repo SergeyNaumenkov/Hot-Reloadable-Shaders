@@ -94,7 +94,7 @@ private:
 	float mViewportHeight;
 	void* mCurrentRenderWindow;
 
-	HotReloadableShades mHotReloadShaders;
+	HotReloadableShaders mHotReloadShaders;
 	ShaderInformation mShaderInformation;
 };
 

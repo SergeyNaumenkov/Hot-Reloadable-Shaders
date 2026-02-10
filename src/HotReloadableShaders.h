@@ -77,11 +77,11 @@ struct ShaderInformation
 	D3DRenderDevices renderDevices;
 };
 
-class HotReloadableShades
+class HotReloadableShaders
 {
 public:
-	HotReloadableShades();
-	~HotReloadableShades();
+	HotReloadableShaders();
+	~HotReloadableShaders();
 
 	// Add new shader information
 	void AddNewBundle(ShaderInformation& information);
@@ -108,6 +108,9 @@ public:
 	void ActionIfCompiled(std::function<void()> callback);
 
 protected:
+
+	// Generate .cso files for compiled shaders
+	void GenerateCSO(ShaderInformation& info, void* buffer, int bufferSize);
 
 	// Watch for files
 	void StartWatch();
@@ -136,7 +139,7 @@ private:
 /// <summary>
 /// Constructor
 /// </summary>
-inline HotReloadableShades::HotReloadableShades()
+inline HotReloadableShaders::HotReloadableShaders()
 {
 	bIsCompiled = false;
 
@@ -147,7 +150,7 @@ inline HotReloadableShades::HotReloadableShades()
 /// <summary>
 /// Destructor
 /// </summary>
-inline HotReloadableShades::~HotReloadableShades()
+inline HotReloadableShaders::~HotReloadableShaders()
 {
 	if (mCompiledPixelShader)
 	{
@@ -166,7 +169,7 @@ inline HotReloadableShades::~HotReloadableShades()
 /// Add new shader information
 /// </summary>
 /// <param name="information">Information with your shaders which is enable hot reload</param>
-inline void HotReloadableShades::AddNewBundle(ShaderInformation& information)
+inline void HotReloadableShaders::AddNewBundle(ShaderInformation& information)
 {
 	mShadersInformation.push_back(information);
 	mTimeChanged[information.localName] = 0;
@@ -175,7 +178,7 @@ inline void HotReloadableShades::AddNewBundle(ShaderInformation& information)
 /// <summary>
 /// Start watching
 /// </summary>
-inline void HotReloadableShades::Start()
+inline void HotReloadableShaders::Start()
 {
 	// Watching 
 	StartWatch();
@@ -186,7 +189,7 @@ inline void HotReloadableShades::Start()
 /// </summary>
 /// <param name="localName">local name of shader information</param>
 /// <returns>Shader information</returns>
-inline ShaderInformation* HotReloadableShades::GetShaderInformationByLocalName(const char* localName)
+inline ShaderInformation* HotReloadableShaders::GetShaderInformationByLocalName(const char* localName)
 {
 	// try find shader information
 	for (auto& info : mShadersInformation)
@@ -202,7 +205,7 @@ inline ShaderInformation* HotReloadableShades::GetShaderInformationByLocalName(c
 /// Have the shaders been compiled
 /// </summary>
 /// <returns></returns>
-inline bool HotReloadableShades::IsCompiled()
+inline bool HotReloadableShaders::IsCompiled()
 {
 	return bIsCompiled;
 }
@@ -211,7 +214,7 @@ inline bool HotReloadableShades::IsCompiled()
 /// Get compiled shaders type
 /// </summary>
 /// <returns></returns>
-inline std::vector<CompiledQueue> HotReloadableShades::GetCompiledShadersType()
+inline std::vector<CompiledQueue> HotReloadableShaders::GetCompiledShadersType()
 {
 	return mCompiledShaders;
 }
@@ -220,7 +223,7 @@ inline std::vector<CompiledQueue> HotReloadableShades::GetCompiledShadersType()
 /// Get compiled pixel shader 
 /// </summary>
 /// <returns></returns>
-inline ID3D11PixelShader* HotReloadableShades::GetCompiledPixelShader()
+inline ID3D11PixelShader* HotReloadableShaders::GetCompiledPixelShader()
 {
 	return mCompiledPixelShader;
 }
@@ -229,7 +232,7 @@ inline ID3D11PixelShader* HotReloadableShades::GetCompiledPixelShader()
 /// Get compiled pixel shader 
 /// </summary>
 /// <returns></returns>
-inline ID3D11VertexShader* HotReloadableShades::GetCompiledVertexShader()
+inline ID3D11VertexShader* HotReloadableShaders::GetCompiledVertexShader()
 {
 	return mCompiledVertexShader;
 }
@@ -238,7 +241,7 @@ inline ID3D11VertexShader* HotReloadableShades::GetCompiledVertexShader()
 /// Set custom callback, which called when shaders is compiled
 /// </summary>
 /// <param name="callback">Callbacl</param>
-inline void HotReloadableShades::ActionIfCompiled(std::function<void()> callback)
+inline void HotReloadableShaders::ActionIfCompiled(std::function<void()> callback)
 {
 	mCustomCallbackWhenShadersIsCompiled = callback;
 }
@@ -256,9 +259,39 @@ inline unsigned long long FileTimeToUInt64(const FILETIME& ft) {
 }
 
 /// <summary>
+/// Generate .cso files for compiled shaders
+/// </summary>
+inline void HotReloadableShaders::GenerateCSO(ShaderInformation& info, void* buffer, int bufferSize)
+{
+	// Prepare file name
+	std::string csoFile = info.hlslPath;
+	auto extOffet = csoFile.find(".hlsl");
+	csoFile.erase(extOffet);
+	csoFile.append(".cso");
+
+	FILE* f = nullptr;
+	fopen_s(&f, csoFile.c_str(), "wb"); 
+	if (!f)
+	{
+		printf("Failed create .cso file for <%s>!\n", info.hlslPath);
+		return;
+	}
+
+	auto wroteBytes = fwrite(buffer, 1, bufferSize, f);
+	if (wroteBytes != bufferSize)
+	{
+		printf("Failed write in .cso file!");
+		fclose(f);
+		return;
+	}
+
+	fclose(f);
+}
+
+/// <summary>
 /// Watch for files
 /// </summary>
-inline void HotReloadableShades::StartWatch()
+inline void HotReloadableShaders::StartWatch()
 {
 	bIsCompiled = false;
 	mCompiledShaders.clear();
@@ -360,7 +393,7 @@ inline bool ReadFile(const char* filename, std::vector<unsigned char>& buffer)
 /// <param name="filePath">.hlsl path</param>
 /// <param name="info">Shader information</param>
 /// <returns>bool is compiled otherwise false</returns>
-inline bool HotReloadableShades::CompileFile(ShaderInformation& info)
+inline bool HotReloadableShaders::CompileFile(ShaderInformation& info)
 {
 	std::vector<unsigned char> fileBuffer;
 
@@ -397,6 +430,12 @@ inline bool HotReloadableShades::CompileFile(ShaderInformation& info)
 			return false;
 	}
 
+	// Generate .cso from compiled shaders
+	if (info.bSaveToCSO)
+	{
+		GenerateCSO(info, shader->GetBufferPointer(), (int)shader->GetBufferSize());
+	}
+
 	// Release buffers
 	fileBuffer.clear();
 
@@ -409,7 +448,7 @@ inline bool HotReloadableShades::CompileFile(ShaderInformation& info)
 /// <param name="info">Shader information</param>
 /// <param name="shader">shader blob</param>
 /// <returns></returns>
-inline bool HotReloadableShades::CreatePixelShader(ShaderInformation& info, ID3DBlob* shader)
+inline bool HotReloadableShaders::CreatePixelShader(ShaderInformation& info, ID3DBlob* shader)
 {
 	if (mCompiledPixelShader)
 	{
@@ -436,7 +475,7 @@ inline bool HotReloadableShades::CreatePixelShader(ShaderInformation& info, ID3D
 /// <param name="info">Shader information</param>
 /// <param name="shader">shader blob</param>
 /// <returns></returns>
-inline bool HotReloadableShades::CreateVertexShader(ShaderInformation& info, ID3DBlob* shader)
+inline bool HotReloadableShaders::CreateVertexShader(ShaderInformation& info, ID3DBlob* shader)
 {
 	if (mCompiledVertexShader)
 	{

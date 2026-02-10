@@ -418,7 +418,7 @@ void Example::Prepare()
 void Example::PrepareHotReloadShaders()
 {
 	// Add pixel shader
-	mShaderInformation.bSaveToCSO = false; // Future 
+	mShaderInformation.bSaveToCSO = true; // Future 
 	mShaderInformation.entryPoint = "main"; // Set entry point for shader
 	mShaderInformation.hlslPath = "PixelShader.hlsl"; // Source file 
 	mShaderInformation.isAutomationBind = false; // Allow system automate bind compiled shaders ( future )
