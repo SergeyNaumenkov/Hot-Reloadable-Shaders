@@ -45,7 +45,13 @@ just clone the repository, run .sln and assemble the project, launch the applica
 open .hlsl it in a text editor, edit file and after saving, you will immediately see the result on the screen. Without recompilation.
 
 ## Showcase
+### Demonstration of hot reload
+<img src="showcase/hotReload.gif" width="100%" height="80%" alt="Hot Reload demo">
 
+---
+
+### Demonstration of error output to the console
+<img src="showcase/consoleLog.gif" width="100%" height="80%" alt="Console errors">
 
 ## License
 **Hot Reloadable Shaders** is licensed under the MIT License, see <a href="LICENSE.txt">LICENSE.txt</a> for more information.
