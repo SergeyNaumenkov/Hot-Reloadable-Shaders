@@ -29,7 +29,6 @@ I came up with the idea to automate this and add hot reload for .hlsl to speed u
 
 ## What's next?
 * Bug Fixes
-* Full generation .cso files based on compiled .hlsl
 * Support for Geometry, Hull, Compute shaders
 * In far future add support for DirectX 12 and OpenGL
 * Automatic shader binding after compilation.( at the moment, you are manually getting shaders and binding )
