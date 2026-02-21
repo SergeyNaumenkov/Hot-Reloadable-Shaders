@@ -35,7 +35,7 @@ I came up with the idea to automate this and add hot reload for .hlsl to speed u
 
 ## How to start?
 It's simple, clone the repository, take it.open the file and include it in your project.<br/>
-**or**<br/>
+**OR**<br/>
 Without cloning the repository, go to the src folder and open it.open the file and copy the contents.
 
 ## Examples
